@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora 100% IV Pokémon GO</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+input {
+    padding: 10px;
+    width: 80%;
+    max-width: 300px;
+    font-size: 16px;
+}
+button {
+    padding: 10px 20px;
+    margin-top: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+}
+</style>
+</head>
+<body>
+
+<h1>Calculadora 100% IV Pokémon GO</h1>
+
+<input type="text" id="pokemonInput" placeholder="Ej: pikachu, charizard-mega-x">
+<br>
+<button onclick="calcularPokemon()">Calcular</button>
+
+<div class="card" id="resultado"></div>
+
+<script>
+// CP Multipliers oficiales de Pokémon GO
+const CP_MULTIPLIERS = {
+    20: 0.59740001,
+    30: 0.73170000,
+    35: 0.76156384
+};
+
+let POKEMON_DATA = {};
+
+// Cargar JSON completo desde Raw GitHub
+fetch("https://raw.githubusercontent.com/Xieons-Gaming-Corner/Wiki/master/pokemon_base_stats.json")
+  .then(res => res.json())
+  .then(data => {
+    POKEMON_DATA = data;
+    document.getElementById("resultado").innerHTML = "Base cargada ✔️ Escribe un Pokémon arriba.";
+  })
+  .catch(() => {
+    document.getElementById("resultado").innerHTML = "Error cargando base de datos 😕";
+  });
+
+function calcularCP(attack, defense, stamina, level) {
+    let cpm = CP_MULTIPLIERS[level];
+    return Math.floor((attack * Math.sqrt(defense) * Math.sqrt(stamina) * (cpm * cpm)) / 10);
+}
+
+// Buscador con sugerencia
+function sugerenciaNombre(input) {
+    input = input.toLowerCase();
+    return Object.keys(POKEMON_DATA).find(n => n.includes(input)) || null;
+}
+
+function calcularPokemon() {
+    let input = document.getElementById("pokemonInput").value.toLowerCase().trim();
+    let nombre = input;
+
+    if (!POKEMON_DATA[nombre]) {
+        let s = sugerenciaNombre(input);
+        if (s) nombre = s;
+        else {
+            document.getElementById("resultado").innerHTML = "❌ Pokémon no encontrado";
+            return;
+        }
+    }
+
+    let stats = POKEMON_DATA[nombre];
+    let attack = stats.attack + 15;
+    let defense = stats.defense + 15;
+    let stamina = stats.stamina + 15;
+
+    let cp20 = calcularCP(attack, defense, stamina, 20);
+    let cp30 = calcularCP(attack, defense, stamina, 30);
+    let cp35 = calcularCP(attack, defense, stamina, 35);
+
+    document.getElementById("resultado").innerHTML = `
+        <b>${nombre.toUpperCase()} 100% IV</b><br><br>
+        ⚔️ Incursión (Nivel 20): ${cp20} PC<br>
+        🌿 Salvaje (Nivel 30): ${cp30} PC<br>
+        🌧️ Weather Boost (Nivel 35): ${cp35} PC
+    `;
+}
+</script>
+
+</body>
+</html>
